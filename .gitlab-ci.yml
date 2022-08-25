@@ -1,0 +1,56 @@
+stages:
+  - lint
+  - test
+  - build
+
+variables:
+  GIT_DEPTH: "1"
+  GIT_SUBMODULE_STRATEGY: "normal"
+  FF_USE_FASTZIP: "true"
+
+image:
+  name: nixos/nix
+
+cache:
+  - paths:
+      - ./node_modules/
+      - ./wasm/psd/node_modules/
+      - ./wasm/lcms/build/
+      - ~/.rustup/
+
+before_script:
+  # https://stackoverflow.com/a/58454193/18355339
+  - nix-env -f shell.nix -i -A buildInputs
+  - npm install
+  - cd $CI_PROJECT_DIR/wasm/psd
+  - npm install
+  - cd $CI_PROJECT_DIR/wasm/lcms
+  - npm install
+  - cd $CI_PROJECT_DIR
+  - rustup default stable
+
+# unit-test-job:
+#   stage: test
+#   script:
+#     - npm run test
+
+# typecheck-lint-job:
+#   stage: lint
+#   script:
+#     - npm run typecheck
+
+# tslint-lint-job:
+#   stage: lint
+#   script:
+#     - npm run tslint
+
+dist-build-job:
+  stage: build
+  script:
+    - npm -w wasm/psd -w wasm/lcms run build
+    - npm run build
+  artifacts:
+    paths:
+      - dist
+    expose_as: dist
+    expire_in: 1 week

@@ -1,0 +1,14 @@
+{
+    "name": "lcms",
+    "private": true,
+    "description": "Emscripten build of Little-CMS2",
+    "version": "0.0.0",
+    "main": "./build/lcms.js",
+    "types": "./lcms.d.ts",
+    "scripts": {
+        "build": "make"
+    },
+    "devDependencies": {
+        "@types/emscripten": "^1.39.6"
+    }
+}

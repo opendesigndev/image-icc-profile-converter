@@ -1,0 +1,27 @@
+{
+  "name": "demo",
+  "version": "0.0.0",
+  "description": "",
+  "scripts": {
+    "start": "vite",
+    "dev": "vite",
+    "build": "vite build",
+    "serve": "vite preview",
+    "prepare-dist": "npm run build && cd dist && zip -r dist *"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "prettier": "^2.7.1",
+    "typescript": "^4.7.4",
+    "vite": "^3.0.0",
+    "vite-plugin-solid": "^2.3.0"
+  },
+  "dependencies": {
+    "@hope-ui/solid": "^0.6.7",
+    "@stitches/core": "^1.2.8",
+    "@storeon/solidjs": "^3.0.1",
+    "solid-icons": "^1.0.1",
+    "solid-js": "^1.4.7",
+    "solid-transition-group": "^0.0.10"
+  }
+}

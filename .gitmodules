@@ -3,4 +3,5 @@
 	url = https://github.com/mm2/Little-CMS
 [submodule "wasm/psd"]
 	path = wasm/psd
-	url = https://github.com/webtoon/psd.git
+	url = https://github.com/opendesigndev/psd-ts.git
+	branch = lczaplinski/read-icc-profile

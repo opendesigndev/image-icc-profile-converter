@@ -16,23 +16,32 @@ cache:
       - ./node_modules/
       - ./wasm/psd/node_modules/
       - ./wasm/lcms/build/
-      - ~/.rustup/
+      - ./wasm/lcms/.cache
+      - ./wasm/lcms/.em_cache
 
 before_script:
+  - echo -e "\e[0Ksection_start:`date +%s`:buildInputs\r\e[0KInstall nixOS dependencies"
   # https://stackoverflow.com/a/58454193/18355339
   - nix-env -f shell.nix -i -A buildInputs
-  - npm install
-  - cd $CI_PROJECT_DIR/wasm/psd
-  - npm install
-  - cd $CI_PROJECT_DIR/wasm/lcms
-  - npm install
-  - cd $CI_PROJECT_DIR
-  - rustup default stable
+  - echo -e "\e[0Ksection_end:`date +%s`:buildInputs\r\e[0K"
 
-# unit-test-job:
-#   stage: test
-#   script:
-#     - npm run test
+  - echo -e "\e[0Ksection_start:`date +%s`:npmInstall\r\e[0K Install npm dependencies"
+  - npm install
+  - npm -w wasm/psd -w wasm/lcms install
+  - echo -e "\e[0Ksection_end:`date +%s`:npmInstall\r\e[0K"
+
+  - echo -e "\e[0Ksection_start:`date +%s`:rustup\r\e[0KInstall rustup default toolchain"
+  - rustup default stable
+  - echo -e "\e[0Ksection_end:`date +%s`:rustup\r\e[0K"
+
+  - echo -e "\e[0Ksection_start:`date +%s`:runBuild\r\e[0KBuild WASM dependencies"
+  - npm -w wasm/psd -w wasm/lcms run build
+  - echo -e "\e[0Ksection_end:`date +%s`:runBuild\r\e[0K"
+
+unit-test-job:
+  stage: test
+  script:
+    - npm run test
 
 # typecheck-lint-job:
 #   stage: lint
@@ -47,10 +56,19 @@ before_script:
 dist-build-job:
   stage: build
   script:
-    - npm -w wasm/psd -w wasm/lcms run build
     - npm run build
   artifacts:
     paths:
       - dist
     expose_as: dist
+    expire_in: 1 week
+
+demo-build-job:
+  stage: build
+  script:
+    - npm -w demo run build
+  artifacts:
+    paths:
+      - demo/dist
+    expose_as: demo
     expire_in: 1 week

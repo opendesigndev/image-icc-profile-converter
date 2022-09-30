@@ -17,6 +17,11 @@ mkShell {
     emscripten
     bloaty
     gnumake
-    busybox
+    # LSP for emacs
+    bear
+    clang-tools
+    # Build tools need it sometimes
+    gnused
+    gawk
   ];
 }

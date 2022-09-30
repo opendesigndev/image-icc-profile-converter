@@ -3,7 +3,8 @@
     "private": true,
     "description": "Emscripten build of Little-CMS2",
     "version": "0.0.0",
-    "main": "./build/lcms.js",
+    "main": "./build/lcms.mjs",
+    "type": "module",
     "types": "./lcms.d.ts",
     "scripts": {
         "build": "make"

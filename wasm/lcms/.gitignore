@@ -6,3 +6,6 @@ tmp/
 
 build/
 .em_cache/
+
+.cache/
+compile_commands.json

@@ -4,15 +4,10 @@ with pkgs;
 
 mkShell {
   buildInputs = [
-    rustup
     wasm-pack
     nodejs-18_x
-    gcc # https://gitlab.avcd.cz/opendesign/photoshop-parser-webtoon/-/jobs/983875#L489
     # needed for node-canvas
     pkg-config
-    pixman
-    cairo
-    pango
     # needed for color converter
     emscripten
     bloaty

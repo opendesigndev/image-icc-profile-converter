@@ -14,9 +14,10 @@ build: lib.c build/Makefile
 		-sEXPORTED_RUNTIME_METHODS=ccall,cwrap \
 		-sEXPORTED_FUNCTIONS=_free,_malloc \
 		-sWASM=0 \
+		-sASSERTIONS=1 \
 		--post-js ./lib--post-js.js \
 		--memory-init-file 0 \
-		-s INITIAL_MEMORY=$$(( 128 * 1024 * 1024 )) \
+		-s INITIAL_MEMORY=$$(( 2000 * 1024 * 1024 )) \
 		-s MALLOC=emmalloc \
 		--no-entry
 

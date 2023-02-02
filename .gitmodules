@@ -1,7 +1,4 @@
 [submodule "wasm/icc/Little-CMS"]
 	path = wasm/lcms/Little-CMS
 	url = https://github.com/mm2/Little-CMS
-[submodule "wasm/psd"]
-	path = wasm/psd
-	url = https://github.com/opendesigndev/psd-ts.git
-	branch = lczaplinski/read-icc-profile
+

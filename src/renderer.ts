@@ -2,63 +2,63 @@ import {FormatFlags, Profile, TransformFlags} from '../wasm/lcms/lcms'
 import {WithMalloc} from './lcms'
 
 export class Renderer {
-  constructor(private lcms: WithMalloc) {}
+  private _lcms: WithMalloc
+
+  constructor(lcms: WithMalloc) {
+    this._lcms = lcms
+  }
 
   render(
     buffer: Uint8ClampedArray | Uint8Array,
-    profile?: Uint8Array
+    profile: Uint8Array
   ): Uint8ClampedArray | Uint8Array {
-    if (!profile) {
-      return buffer
-    }
-
-    return this.lcms.withCleanup((cleanup) => {
+    return this._lcms.withCleanup((cleanup) => {
       // Allocate in one call to avoid memory migration in between
-      const memory = this.lcms.alloc({
+      const memory = this._lcms.alloc({
         length: buffer.length * 2,
         bytesPerElement: buffer.BYTES_PER_ELEMENT,
       })
-      cleanup.push(() => this.lcms.free(memory))
+      cleanup.push(() => this._lcms.free(memory))
 
       // TODO: Cache it somehow? But each memory migration might invalidate pointers?
-      const destProfile = this.lcms.CreatesRGBProfile()
-      cleanup.push(() => this.lcms.CloseProfile(destProfile))
+      const destProfile = this._lcms.CreatesRGBProfile()
+      cleanup.push(() => this._lcms.CloseProfile(destProfile))
 
-      const srcProfile = this.lcms.OpenProfileFromMem(profile, profile.length)
-      cleanup.push(() => this.lcms.CloseProfile(srcProfile))
+      const srcProfile = this._lcms.OpenProfileFromMem(profile, profile.length)
+      cleanup.push(() => this._lcms.CloseProfile(srcProfile))
 
-      const {srcFormat, pixelCount, transformFlags} = this.copyToHeap(
+      const {srcFormat, pixelCount, transformFlags} = this._copyToHeap(
         srcProfile,
         {
           src: buffer,
           dest: memory.subarray(0, buffer.length),
         }
       )
-      const transform = this.lcms.CreateTransform(
+      const transform = this._lcms.CreateTransform(
         srcProfile,
         srcFormat,
         destProfile,
-        this.lcms.TYPE_RGBA_8,
-        this.lcms.INTENT_PERCEPTUAL,
+        this._lcms.TYPE_RGBA_8,
+        this._lcms.INTENT_PERCEPTUAL,
         transformFlags
       )
       if (transform === 0) {
         throw new Error('Transform load failed')
       }
 
+      cleanup.push(() => this._lcms.DeleteTransform(transform))
+
       const transformed = memory.subarray(buffer.length)
 
       // Initialize alpha to fully opaque in case src doesn't contain it
       transformed.fill(255)
 
-      this.lcms.DoTransform(
+      this._lcms.DoTransform(
         transform,
-        this.lcms.toPtr(memory),
-        this.lcms.toPtr(transformed),
+        this._lcms.toPtr(memory),
+        this._lcms.toPtr(transformed),
         /* pixelCount, not array length */ pixelCount
       )
-
-      this.lcms.DeleteTransform(transform)
 
       const final = Uint8ClampedArray.from(transformed) // Copy over from asm.js heap
 
@@ -66,7 +66,60 @@ export class Renderer {
     })
   }
 
-  private copyToHeap(
+  iccProfileName(icc_profile: Uint8Array): string | null {
+    return this._lcms.withCleanup((cleanup) => {
+      const profile = this._lcms.OpenProfileFromMem(
+        icc_profile,
+        icc_profile.length
+      )
+      cleanup.push(() => this._lcms.CloseProfile(profile))
+
+      const bytesRequired = this._lcms.GetProfileInfo(
+        profile,
+        this._lcms.INFO_TYPE.cmsInfoModel,
+        'en',
+        'us'
+      )
+
+      const heapBytes = this._lcms.alloc({
+        bytesPerElement: 1,
+        length: bytesRequired,
+      })
+      cleanup.push(() => this._lcms.free(heapBytes))
+
+      const bytesWritten = this._lcms.GetProfileInfo(
+        profile,
+        this._lcms.INFO_TYPE.cmsInfoModel,
+        'en',
+        'us',
+        this._lcms.toPtr(heapBytes),
+        bytesRequired
+      )
+      console.assert(bytesWritten > 0, 'GetProfileInfo failed to return Model')
+      console.assert(
+        bytesWritten <= bytesRequired,
+        'GetProfileInfo overflowed buffer'
+      )
+      const decoded = this._utf32Decode(
+        heapBytes.subarray(0, bytesWritten - 4 /* NULL character at the end */)
+      )
+      return decoded
+    })
+  }
+
+  // https://stackoverflow.com/a/64707714
+  private _utf32Decode(bytes: Uint8Array): string {
+    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength)
+    let result = ''
+
+    for (let i = 0; i < bytes.length; i += 4) {
+      result += String.fromCodePoint(view.getInt32(i, true))
+    }
+
+    return result
+  }
+
+  private _copyToHeap(
     srcProfile: Profile,
     {
       src,
@@ -80,7 +133,7 @@ export class Renderer {
     pixelCount: number
     transformFlags: TransformFlags
   } {
-    let srcFormat = this.lcms.FormatterForColorspaceOfProfile(
+    let srcFormat = this._lcms.FormatterForColorspaceOfProfile(
       srcProfile,
       1,
       false
@@ -108,12 +161,12 @@ export class Renderer {
      * transparent alpha. This is also to keep compatibility with old versions
      * of Little CMS.
      * */
-    let transformFlags = this.lcms.FLAGS_COPY_ALPHA
+    let transformFlags = this._lcms.FLAGS_COPY_ALPHA
 
     if (isRGB) {
       // TODO: test on RGBA
       /* Extra 1 (A) channel, even if ICC thinks it is RGB */
-      srcFormat |= this.lcms.RGBA_XOR_RGB
+      srcFormat |= this._lcms.RGBA_XOR_RGB
       dest.set(src)
     }
     if (isCMYK) {

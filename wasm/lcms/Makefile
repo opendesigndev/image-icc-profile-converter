@@ -2,6 +2,8 @@ export EM_CACHE=$(shell pwd)/.em_cache
 export CFLAGS=-Oz -flto
 export LFLAGS=-flto
 
+ASSERTIONS ?= 0
+
 build: lib.c build/Makefile
 	cd build && emmake make -j
 	bear -- emcc \
@@ -14,7 +16,7 @@ build: lib.c build/Makefile
 		-sEXPORTED_RUNTIME_METHODS=ccall,cwrap \
 		-sEXPORTED_FUNCTIONS=_free,_malloc \
 		-sWASM=0 \
-		-sASSERTIONS=1 \
+		-sASSERTIONS=$(ASSERTIONS) \
 		--post-js ./lib--post-js.js \
 		--memory-init-file 0 \
 		-s INITIAL_MEMORY=$$(( 2000 * 1024 * 1024 )) \

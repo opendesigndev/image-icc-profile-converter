@@ -14,10 +14,9 @@ const indexConfig = ({format, outputFile, declarations}) => ({
     sourcemap: !declarations,
   },
   external: [],
-  plugins: [
-    nodeResolve({resolveOptions}),
-    declarations ? dts() : typescript({sourceMap: true}),
-  ],
+  plugins: declarations
+    ? [dts()]
+    : [nodeResolve({resolveOptions}), typescript({sourceMap: true})],
 })
 
 export default [

@@ -1,8 +1,10 @@
 {
   "name": "@opendesign/image-icc-profile-converter",
-  "version": "0.0.0",
+  "private": true,
+  "version": "0.0.0-experimental",
   "scripts": {
-    "build": "rollup -c"
+    "build": "rollup -c",
+    "test": "vitest --dir tests"
   },
   "type": "module",
   "main": "./dist/index.js",

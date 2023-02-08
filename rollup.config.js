@@ -21,6 +21,7 @@ const indexConfig = ({format, outputFile, declarations}) => ({
 })
 
 export default [
+  indexConfig({outputFile: 'dist/index.cjs', format: 'cjs'}),
   indexConfig({outputFile: 'dist/index.js', format: 'es'}),
   indexConfig({outputFile: 'dist/index.d.ts', declarations: true}),
 ]

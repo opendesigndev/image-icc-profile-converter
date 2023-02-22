@@ -1,7 +1,6 @@
 {
   "name": "@opendesign/image-icc-profile-converter",
-  "private": true,
-  "version": "0.0.0-experimental",
+  "version": "0.0.2-experimental",
   "scripts": {
     "build": "rollup -c",
     "test": "vitest --dir tests"

@@ -1,19 +1,27 @@
-import {dirname} from 'path'
-import {createRequire} from 'module'
-globalThis.__dirname = dirname(import.meta.url).substring(7)
-globalThis.require = createRequire(import.meta.url)
-
 import Lcms from '../wasm/lcms'
+
+async function polyfill() {
+  try {
+    const {dirname} = await import('path')
+    const {
+      Module: {createRequire},
+    } = await import('module')
+    globalThis.__dirname = dirname(import.meta.url).substring(7)
+    globalThis.require = createRequire(import.meta.url)
+  } catch {
+    // we are running on browser
+  }
+}
 
 // a quirk of emscripten - ES6 module is just a namespace wrapper over CJS
 let lcms = undefined as Promise<WithMalloc> | undefined
 
-export default () => {
+export default async () => {
+  await polyfill()
   lcms ||= Lcms()
     .then(({ready}) => ready)
     .then((lcms) => {
       lcms.SetConsoleLogErrorHandler()
-
       return WithMalloc(lcms)
     })
   return lcms

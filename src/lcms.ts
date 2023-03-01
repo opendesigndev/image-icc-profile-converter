@@ -20,12 +20,10 @@ export default async () => {
   await polyfill()
   lcms ||= Lcms()
     .then(async ({ready}) => {
-      await polyfill()
       return ready
     })
     .then((lcms) => {
       lcms.SetConsoleLogErrorHandler()
-
       return WithMalloc(lcms)
     })
   return lcms

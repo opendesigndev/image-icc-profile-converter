@@ -19,9 +19,7 @@ let lcms = undefined as Promise<WithMalloc> | undefined
 export default async () => {
   await polyfill()
   lcms ||= Lcms()
-    .then(async ({ready}) => {
-      return ready
-    })
+    .then(({ready}) => ready)
     .then((lcms) => {
       lcms.SetConsoleLogErrorHandler()
       return WithMalloc(lcms)
